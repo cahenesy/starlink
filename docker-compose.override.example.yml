@@ -1,0 +1,11 @@
+# Copy to docker-compose.override.yml (gitignored) for local caps.
+# Example: 15 day / 4 GB Prometheus retention on a small disk.
+services:
+  prometheus:
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=4GB
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles

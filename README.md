@@ -1,27 +1,27 @@
 <p align="center">
-  <a href="https://github.com/danopstech/starlink">
-    <img src="https://github.com/danopstech/starlink/raw/main/.docs/assets/logo.png" alt="Logo" width="130" height="130">
+  <a href="https://github.com/cahenesy/starlink">
+    <img src=".docs/assets/logo.png" alt="Logo" width="130" height="130">
   </a>
 
 <h3 align="center">Starlink Monitoring System</h3>
 
 <p align="center">
-🛰️ Measuring the performance of your "Beta" Starlink internet connection! 📡
+🛰️ Dish metrics, obstruction map, latency and speedtests for a current-firmware Starlink dish.
 <br />
-Not affiliated with or acting on behalf of Starlink™️
+Fork of <a href="https://github.com/danopstech/starlink">danopstech/starlink</a> (2021). Not affiliated with Starlink™️
 <br />
 <br />
-<a href="https://github.com/danopstech/starlink/issues/new?assignees=dwillcocks&labels=bug&template=bug_report.md&title=">Report Bug</a>
+<a href="https://github.com/cahenesy/starlink/issues/new">Report Bug</a>
 •
-<a href="https://github.com/danopstech/starlink/issues/new?assignees=dwillcocks&labels=enhancement&template=feature_request.md&title=">Request Feature</a>
+<a href="https://github.com/cahenesy/starlink/issues/new">Request Feature</a>
 </p>
 
 <p align="center">
-    <a href="https://github.com/danopstech/starlink/blob/main/LICENSE">
-        <img alt="Build Status" src="https://img.shields.io/github/license/danopstech/starlink">
+    <a href="https://github.com/cahenesy/starlink/blob/main/LICENSE">
+        <img alt="Build Status" src="https://img.shields.io/github/license/cahenesy/starlink">
     </a>
-    <a href="https://github.com/danopstech/starlink/issues">
-        <img alt="Build Status" src="https://img.shields.io/github/issues/danopstech/starlink">
+    <a href="https://github.com/cahenesy/starlink/issues">
+        <img alt="Build Status" src="https://img.shields.io/github/issues/cahenesy/starlink">
     </a>
     <a href="https://docs.docker.com/compose/compose-file/compose-versioning/">
         <img alt="Build Status" src="https://img.shields.io/badge/docker--compose-v3.3-blue">
@@ -44,17 +44,13 @@ Not affiliated with or acting on behalf of Starlink™️
 </p>
 
 <p align="center">
-    <img src="https://github.com/danopstech/starlink/raw/main/.docs/assets/screenshot1.jpg" width="32%"/> 
-    <img src="https://github.com/danopstech/starlink/raw/main/.docs/assets/screenshot2.jpg" width="32%"/>
-    <img src="https://github.com/danopstech/starlink/raw/main/.docs/assets/screenshot3.jpg" width="32%"/>
-    <img src="https://github.com/danopstech/starlink/raw/main/.docs/assets/screenshot4.jpg" width="32%"/>
-    <img src="https://github.com/danopstech/starlink/raw/main/.docs/assets/screenshot5.jpg" width="32%"/>
-    <img src="https://github.com/danopstech/starlink/raw/main/.docs/assets/screenshot6.jpg" width="32%"/>
+    <img src=".docs/assets/screenshot-current.png" width="95%"/>
 </p>
 
 ## 🏗️ Built With
 
-- 🐳 **[Starlink exporter](https://github.com/danopstech/starlink_exporter)** - talks to the Starlink dish via gRPC and exposes metrics in a format Prometheus understands.
+- 🐳 **[Starlink exporter](https://github.com/danopstech/starlink_exporter)** - 2021 gRPC scrape of throughput, latency, alerts (still useful).
+- 🐍 **obstruction-map** (this repo) - polls current `get_status` and `dish_get_obstruction_map` over gRPC-web; serves Prometheus metrics plus a 123×123 SNR PNG/JSON for Grafana.
 - 🐳 **[Speedtest exporter](https://github.com/danopstech/speedtest_exporter)** - When asked it carries out a ping,upload and download test to [speedtest.net](https://www.speedtest.net/).
 - 🐳 **[Blackbox exporter](https://github.com/prometheus/blackbox_exporter/)** - Carries out high frequency ping tests.
 - 🐳 **[Grafana](https://grafana.com/)** - used to compose observability dashboards.
@@ -66,14 +62,16 @@ Not affiliated with or acting on behalf of Starlink™️
 I hope this project will make it easier for users to monitor their Starlink connection in even more detail, see its performance over time with each beta software release, but most importantly brag about their new satellite base internet to EVERYONE!
 
 **What does this do?**
-1. Collects information from the Starlink dish every 3 seconds such as: signal strength, alarms, obstructions and latency
-2. Runs internet speed tests every 60 minutes (upload, download, ping)
-3. Measures latency to multiple destinations globally every 3 seconds
-4. Stores all the metrics in a local database (Prometheus time series database)
-5. You can then view the metrics on pre-built dashboards or create your own dashboards in Grafana.
+1. Collects dish throughput, latency and alerts every 3 seconds (2021 exporter)
+2. Collects current-firmware identity, uptime, signal quality, aim/GPS and a 123×123 obstruction map every 10 seconds
+3. Runs internet speed tests every 60 minutes (upload, download, ping)
+4. Measures latency to multiple destinations globally every 3 seconds
+5. Stores metrics in a local Prometheus TSDB and graphs them in Grafana
+
+Current dish firmware reserved the 12 compass-wedge obstruction fields and `phy_rx_beam_snr_avg`. This fork drops those tiles and uses `DishObstructionStats` plus `dish_get_obstruction_map` instead.
 
 <p align="center">
-    <img src="https://github.com/danopstech/starlink/raw/main/.docs/assets/overview.png" width="95%"/> 
+    <img src=".docs/assets/overview.png" width="95%"/> 
 </p>
 
 ⚠️ IMPORTANT: When running; this will carry out speedtests every 60 minutes, which will download and upload a fair amount of data over time. Please bare this in mind if your internet connection fails over to tethered/mobile or a data chargeable supplier when Starlink is not available.
@@ -83,9 +81,9 @@ I hope this project will make it easier for users to monitor their Starlink conn
 If you have good knowledge of the above technologies, possibly a Developer, DevOps Engineer, etc then quick start is for you:
 
 1. Clone the repo and `cd` into your local copy
-2. `docker-compose pull && docker-compose up --remove-orphan`
+2. `docker compose up --build -d`
 3. Grafana is on `localhost:3000` (admin/admin)
-4. The others services are on the ports as per the above diagram.
+4. Other services: Prometheus `9090`, dish exporter `9817`, obstruction map `9818`, blackbox `9115`, speedtest `9092`
 
 ## 🐢 Detailed Start (Slower Start)
 
@@ -112,7 +110,7 @@ This machine must be connected to the same network as the Starlink dish (more th
 
 - Or use Github desktop - https://desktop.github.com/
 
-- Or if you don't know `git` and/or don't want to install it then you can download the files as a [zip here](https://github.com/danopstech/starlink/archive/refs/heads/main.zip) or from clicking the green code button (top right)
+- Or if you don't know `git` and/or don't want to install it then you can download the files as a [zip here](https://github.com/cahenesy/starlink/archive/refs/heads/main.zip) or from clicking the green code button (top right)
 
 > 💡 Please **Star** and **Watch** the repository to hopefully get updates as new features are added
 
@@ -127,9 +125,11 @@ starlink
 │   │        └── datasources   # The preloaded config to talk with prometheus
 │   ├── prometheus             # Prometheus config file
 │   └── blackbox               # Blackbox exporter config file
-├── data                       # Persistent data
-│    ├── grafana               # Grafana will store its running files here
-│    └── prometheus            # Prometheus will store its running files here
+├── data                       # Persistent data (not committed)
+│    ├── grafana
+│    ├── prometheus
+│    └── obstruction           # map.png / map.json written by the sidecar
+├── obstruction-map            # Current-firmware gRPC-web poller
 └── docker-compose.yaml        # Defines all the applications to run
 ```
 
@@ -139,7 +139,7 @@ Open a terminal again and `cd` into the directory of your local copy. we will st
 
 ```bash
 $ cd <path-to-your-copy>
-$ docker-compose pull && docker-compose up --remove-orphan
+$ docker compose up --build -d
 ```
 
 ### Upgrading
@@ -149,15 +149,15 @@ The Docker Compose file will run the latest versions of all the applications. To
 As we ran the original `docker-compose up` in the foreground, so we could watch the logs. Your need to open a new terminal and `cd` to the repository directory.
 
 ```bash
-$ docker-compose pull
-$ docker-compose restart
+$ docker compose pull
+$ docker compose up --build -d
 ```
 
 ### Stopping
 
 To stop you can `ctrl-c` the foreground task in the original terminal and then:
 ```bash
-$ docker-compose down
+$ docker compose down
 ```
 
 ## 📈 Usage (from the browser)
@@ -179,6 +179,12 @@ $ docker-compose down
 - `/metrics` link will get the latest metrics from the Starlink dish
 - `/health` link shows you the gRPC connection state to the dish
 
+**Obstruction map (this fork)**
+- Access via your browser at [http://localhost:9818](http://localhost:9818) (PNG + N/E/S/W)
+- `/metrics` is scraped by Prometheus (`starlink_status_*`, `starlink_obstruction_map_*`)
+- Grafana also serves the same files at `/public/obstruction/map.json` (same-origin for the Plotly panel)
+- Talks to the dish at `192.168.100.1:9201` (gRPC-web). Override `DISH_HOST` / `DISH_PORT` if needed.
+
 **Speedtest Exporter**
 - Standard usage there is no need to visit this
 - Access via your browser at [http://localhost:9092](http://localhost:9092)
@@ -194,21 +200,25 @@ $ docker-compose down
 ## 📖 Extras
 ### Running versioned images
 
-If you would like more control over which versions of each image to run please visit: [Moving to versioned releases](https://github.com/danopstech/starlink/blob/main/.docs/versioned_releases.md)
+If you would like more control over which versions of each image to run please visit: [Moving to versioned releases](.docs/versioned_releases.md)
+
+### Small-disk Prometheus retention
+
+Copy `docker-compose.override.example.yml` to `docker-compose.override.yml` (gitignored) to cap TSDB size/time.
 
 ### Pushing to a cloud based Grafana account
 
-As standard all data stays on your local machine in the `data` folder, we **do not** collect your dish metrics centrally. If you would like more information about pushing metrics into your own Grafana cloud account: [Pushing metrics to Grafana cloud](https://github.com/danopstech/starlink/blob/main/.docs/grafana_cloud.md)
+As standard all data stays on your local machine in the `data` folder. If you would like more information about pushing metrics into your own Grafana cloud account: [Pushing metrics to Grafana cloud](.docs/grafana_cloud.md)
 
 ## 📍 Roadmap
-See the open [issues](https://github.com/danopstech/starlink/issues) for a list of proposed features (and known issues).
+See the open [issues](https://github.com/cahenesy/starlink/issues).
 
 ## 🖋️ License
-[GPL-3.0 License](https://github.com/danopstech/starlink/blob/main/LICENSE)
+[GPL-3.0 License](LICENSE). This is a derivative of danopstech/starlink and must stay GPL-3.0.
 
 ## 😊 Author
-This project was created in 2021 by [Dan Willcocks](https://github.com/dwillcocks).
+Created in 2021 by [Dan Willcocks](https://github.com/dwillcocks). This fork (current dish firmware, obstruction map sidecar) is maintained by [Chris Henesy](https://github.com/cahenesy).
 
 ## 👎 Troubleshooting
-Some troubleshooting tips coming soon, until then raise an [issue](https://github.com/danopstech/starlink/issues/new?assignees=dwillcocks&labels=bug&template=bug_report.md&title=).
+Raise an [issue](https://github.com/cahenesy/starlink/issues/new). The dish must be reachable at `192.168.100.1` from the host running Compose. Native gRPC is `:9200`; this fork’s sidecar uses gRPC-web on `:9201`.
 

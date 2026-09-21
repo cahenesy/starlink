@@ -2,4 +2,7 @@ data/prometheus/*
 !data/prometheus/.gitkeep
 data/grafana/*
 !data/grafana/.gitkeep
+data/obstruction/*
+!data/obstruction/.gitkeep
 .idea/
+docker-compose.override.yml
